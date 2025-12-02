@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warhammer Paint Manager (Powered by Google Sheets)</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header>
+        <h1>Warhammer 40K: Color & Project Manager</h1>
+        <p>Správa figurek a barev bezplatně pomocí Google Sheets.</p>
+    </header>
+
+    <nav>
+        <a href="#home" class="active" onclick="showSection('home')">DOMŮ & NÁVOD</a>
+        <a href="#colors" onclick="showSection('colors')">BARVY (SHEET 1)</a>
+        <a href="#projects" onclick="showSection('projects')">PROJEKTY (SHEET 2 & 3)</a>
+    </nav>
+
+    <main>
+        <section id="home" class="content-section">
+            <h2>Krok 1: Vytvořte si vlastní databázi</h2>
+            <div class="card instructions">
+                <ol>
+                    <li><strong>Zkopírujte šablonu:</strong> Vytvořte si vlastní Google Sheets dokument s listy "BARVY", "PROJEKTY", "ČÁSTI".</li>
+                    <li><strong>Vložte Master Data:</strong> Do listu "BARVY" (Sheet 1) vložte seznam barev (který jsem vám poskytl).</li>
+                    <li><strong>Publikujte Sheets:</strong> V každém listu (BARVY, PROJEKTY, ČÁSTI) jděte na: `Soubor > Publikovat na web` (File > Publish to the web). Zkopírujte URL pro vložení (`<iframe>`).</li>
+                    <li><strong>Vložte odkazy:</strong> Vložte zkopírované odkazy do polí níže.</li>
+                </ol>
+                
+                <h3>Nastavení vašeho Spreadsheetu:</h3>
+                <label for="colorSheetURL">URL pro BARVY (Sheet 1):</label>
+                <input type="text" id="colorSheetURL" placeholder="Vložte URL z Publikovat na web" oninput="saveURL('colors', this.value)">
+                
+                <label for="projectSheetURL">URL pro PROJEKTY (Sheet 2):</label>
+                <input type="text" id="projectSheetURL" placeholder="Vložte URL z Publikovat na web" oninput="saveURL('projects', this.value)">
+                
+                <p class="hint">Adresy se automaticky uloží do vašeho prohlížeče.</p>
+            </div>
+        </section>
+
+        <section id="colors" class="content-section hidden">
+            <h2>Master Seznam Barev (Sheet 1)</h2>
+            <p>Seznam všech barev s možností filtrování (pomocí interních nástrojů Google Sheets). **Sloupce G a H ukazují, jestli barvu 'Mám' a 'Poznámky'.**</p>
+            <div class="sheet-container">
+                <iframe id="colorSheetIframe" src="" frameborder="0" loading="lazy"></iframe>
+            </div>
+        </section>
+
+        <section id="projects" class="content-section hidden">
+            <h2>Přehled Projektů (Sheet 2 & 3)</h2>
+            <p>Seznam vašich modelů (Sheet 2) a detailní rozpis malování jednotlivých částí (Sheet 3).</p>
+            <div class="sheet-container">
+                <iframe id="projectSheetIframe" src="" frameborder="0" loading="lazy"></iframe>
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Warhammer Paint Manager. Data powered by Google Sheets.</p>
+    </footer>
+
+    <script>
+        // Funkce pro přepínání sekcí
+        function showSection(id) {
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.add('hidden');
+            });
+            document.getElementById(id).classList.remove('hidden');
+            
+            // Aktivace navigace
+            document.querySelectorAll('nav a').forEach(link => {
+                link.classList.remove('active');
+            });
+            document.querySelector(`nav a[href="#${id}"]`).classList.add('active');
+
+            // Aktualizace iFramů při přepnutí na sekci
+            if (id === 'colors') {
+                loadIframe('colorSheetURL', 'colorSheetIframe');
+            } else if (id === 'projects') {
+                loadIframe('projectSheetURL', 'projectSheetIframe');
+            }
+        }
+
+        // Funkce pro ukládání URL do LocalStorage
+        function saveURL(key, url) {
+            localStorage.setItem(key, url);
+        }
+
+        // Funkce pro načítání URL do iFrame
+        function loadIframe(key, iframeId) {
+            const url = localStorage.getItem(key);
+            const iframe = document.getElementById(iframeId);
+            
+            // Kontrola, zda URL obsahuje "embed" (z Publikovat na web)
+            if (url && url.includes('embed')) {
+                 iframe.src = url;
+            } else if (url && !url.includes('embed')) {
+                // Pokud uživatel vložil standardní URL, pokusíme se ji upravit na embed
+                // Toto funguje, pouze pokud uživatel správně publikoval list.
+                iframe.src = url.replace('/edit', '/embed');
+            } else {
+                iframe.src = ''; // Clear source if URL is missing
+                // Můžete zde přidat zprávu pro uživatele do iframe nebo nad něj.
+            }
+        }
+        
+        // Načtení uložených URL při startu
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('colorSheetURL').value = localStorage.getItem('colorSheetURL') || '';
+            document.getElementById('projectSheetURL').value = localStorage.getItem('projectSheetURL') || '';
+            
+            // Zobrazit defaultní sekci
+            showSection('home'); 
+        });
+    </script>
+</body>
+</html>
